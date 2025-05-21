@@ -23,6 +23,9 @@ except Exception as e:
     print("streamlit hf secret not defined/assigned")
 login(token=hf_token)
 
+# Check if running on Streamlit Cloud vs locally
+is_streamlit_cloud = os.environ.get('STREAMLIT_RUNTIME_ENV') == 'cloud'
+MAX_ATOMS_CLOUD = 50  # Maximum atoms allowed on Streamlit Cloud
 
 # Set page configuration
 st.set_page_config(
@@ -90,6 +93,18 @@ def streamlit_log(opt):
     df = pd.DataFrame(opt_log)
     table_placeholder.dataframe(df)
 
+# Function to check atom count limits
+def check_atom_limit(atoms_obj):
+    if atoms_obj is None:
+        return True
+    
+    num_atoms = len(atoms_obj)
+    
+    if is_streamlit_cloud and num_atoms > MAX_ATOMS_CLOUD:
+        st.error(f"⚠️ Error: Your structure contains {num_atoms} atoms, which exceeds the {MAX_ATOMS_CLOUD} atom limit for Streamlit Cloud deployments. For larger systems, please download the repository from GitHub and run it locally on your machine where no atom limit applies.")
+        st.info("💡 Running locally allows you to process much larger structures and use your own computational resources more efficiently.")
+        return False
+    return True
 
 
 # Define the available MACE models
@@ -143,7 +158,11 @@ if input_method == "Upload File":
             st.sidebar.success(f"Successfully loaded structure with {len(atoms)} atoms!")
         except Exception as e:
             st.sidebar.error(f"Error loading file: {str(e)}")
-        
+        # Check atom count limit
+        if check_atom_limit(atoms_temp):
+            atoms = atoms_temp
+            st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
+            
         # Clean up the temporary file
         os.unlink(tmp_filepath)
 
@@ -225,7 +244,7 @@ task = st.sidebar.selectbox("Select Calculation Task:",
 # Optimization parameters
 if "Optimization" in task:
     st.sidebar.markdown("### Optimization Parameters")
-    max_steps = st.sidebar.slider("Maximum Steps:", min_value=10, max_value=1000, value=100, step=10)
+    max_steps = st.sidebar.slider("Maximum Steps:", min_value=10, max_value=200, value=100, step=10)
     fmax = st.sidebar.slider("Convergence Threshold (eV/Å):", 
                             min_value=0.001, max_value=0.1, value=0.05, step=0.001, format="%.3f")
     optimizer = st.sidebar.selectbox("Optimizer:", ["BFGS", "LBFGS", "FIRE"], index=1)
