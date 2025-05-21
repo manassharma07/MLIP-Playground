@@ -4,7 +4,7 @@ pandas
 ase
 
 # Install fairchem-core first
-fairchem-core
+fairchem-core==2.0.0b0
 
 
 # Pin specific versions to override dependencies
