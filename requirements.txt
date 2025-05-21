@@ -9,6 +9,8 @@ fairchem-core==2.1.0
 # Pin specific versions to override dependencies
 numpy
 ase
-git+https://github.com/e3nn/e3nn.git@0.4.4#egg=e3nn
+# Install mace_e3nn_new from the main branch on GitHub
+git+https://github.com/manassharma07/mace_e3nn_new.git@main#egg=mace_e3nn_new
 mace-torch
 py3dmol
+huggingface_hub
