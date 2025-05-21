@@ -14,3 +14,4 @@ git+https://github.com/manassharma07/mace_e3nn_new.git@main#egg=mace_e3nn_new
 mace-torch
 py3dmol
 huggingface_hub
+torch==2.3.1
