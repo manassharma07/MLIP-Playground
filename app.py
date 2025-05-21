@@ -23,6 +23,8 @@ try:
 except Exception as e:
     print("streamlit hf secret not defined/assigned")
 
+import os
+os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
 # Check if running on Streamlit Cloud vs locally
 is_streamlit_cloud = os.environ.get('STREAMLIT_RUNTIME_ENV') == 'cloud'
