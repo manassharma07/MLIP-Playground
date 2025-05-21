@@ -8,5 +8,5 @@ fairchem-core
 
 # Pin specific versions to override dependencies
 numpy==1.26.4
-e3nn=<0.5.0
+e3nn<=0.5.0
 mace-torch
