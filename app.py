@@ -392,7 +392,11 @@ if atoms is not None:
                             opt = LBFGS(fcf)
                         else:  # FIRE
                             opt = FIRE(fcf)
-                        
+                            
+                        # Container for log data
+                        opt_log = []
+                        # Attach the Streamlit logger to the optimizer
+                        opt.attach(lambda: streamlit_log(opt), interval=1)
                         # Run optimization
                         st.write("Running cell + geometry optimization...")
                         opt.run(fmax=fmax, steps=max_steps)
