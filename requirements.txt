@@ -3,7 +3,7 @@ streamlit
 pandas
 
 # Install fairchem-core first
-fairchem-core==2.0.0
+fairchem-core==2.1.0
 
 
 # Pin specific versions to override dependencies
