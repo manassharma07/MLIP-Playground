@@ -393,6 +393,9 @@ if atoms is not None:
                         else:  # FIRE
                             opt = FIRE(fcf)
                             
+                        # Streamlit placeholder for live-updating table
+                        table_placeholder = st.empty()
+
                         # Container for log data
                         opt_log = []
                         # Attach the Streamlit logger to the optimizer
