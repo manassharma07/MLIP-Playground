@@ -16,12 +16,12 @@ import pandas as pd
 
 from huggingface_hub import login
 
-# try:
-#     hf_token = st.secrets["HF_TOKEN"]["token"]
-#     os.environ["HF_TOKEN"] = hf_token
-# except Exception as e:
-#     print("streamlit hf secret not defined/assigned")
-# login()
+try:
+    hf_token = st.secrets["HF_TOKEN"]["token"]
+    os.environ["HF_TOKEN"] = hf_token
+except Exception as e:
+    print("streamlit hf secret not defined/assigned")
+login(token=hf_token)
 
 
 # Set page configuration
