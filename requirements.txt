@@ -1,7 +1,6 @@
 # Base packages
 streamlit
 pandas
-ase
 
 # Install fairchem-core first
 fairchem-core==2.0.0b0
