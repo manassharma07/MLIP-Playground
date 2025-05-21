@@ -159,10 +159,6 @@ if input_method == "Upload File":
             st.sidebar.success(f"Successfully loaded structure with {len(atoms)} atoms!")
         except Exception as e:
             st.sidebar.error(f"Error loading file: {str(e)}")
-        # Check atom count limit
-        if check_atom_limit(atoms_temp):
-            atoms = atoms_temp
-            st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
             
         # Clean up the temporary file
         os.unlink(tmp_filepath)
@@ -201,7 +197,10 @@ elif input_method == "Paste Content":
             # Read the structure using ASE
             atoms = read(tmp_filepath)
             st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
-            
+            # Check atom count limit
+            if check_atom_limit(atoms_temp):
+                atoms = atoms_temp
+                st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
             # Clean up the temporary file
             os.unlink(tmp_filepath)
         except Exception as e:
