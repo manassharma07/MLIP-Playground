@@ -8,7 +8,7 @@ fairchem-core==2.0.0b0
 
 
 # Pin specific versions to override dependencies
-numpy==1.26.4
+numpy
 e3nn<=0.4.4
 mace-torch
 py3dmol
