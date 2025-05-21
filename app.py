@@ -19,9 +19,10 @@ from huggingface_hub import login
 try:
     hf_token = st.secrets["HF_TOKEN"]["token"]
     os.environ["HF_TOKEN"] = hf_token
+    login(token=hf_token)
 except Exception as e:
     print("streamlit hf secret not defined/assigned")
-login(token=hf_token)
+
 
 # Check if running on Streamlit Cloud vs locally
 is_streamlit_cloud = os.environ.get('STREAMLIT_RUNTIME_ENV') == 'cloud'
