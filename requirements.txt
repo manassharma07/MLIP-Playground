@@ -1,0 +1,7 @@
+streamlit
+pandas
+ase
+fairchem-core
+mace-torch
+numpy==1.26.4
+e3nn==0.4.4
