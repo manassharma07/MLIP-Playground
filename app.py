@@ -28,6 +28,7 @@ os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
 # Check if running on Streamlit Cloud vs locally
 is_streamlit_cloud = os.environ.get('STREAMLIT_RUNTIME_ENV') == 'cloud'
+st.write(is_streamlit_cloud)
 MAX_ATOMS_CLOUD = 50  # Maximum atoms allowed on Streamlit Cloud
 MAX_ATOMS_CLOUD_UMA = 15
 
