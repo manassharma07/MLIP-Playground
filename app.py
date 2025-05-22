@@ -473,8 +473,8 @@ else:
     # Display instructions if no structure is loaded
     st.info("Please select a structure using the sidebar options to begin.")
     
+with st.expander('## About This App'):
     # Show some information about the app
-    st.markdown("## About This App")
     st.write("""
     This app allows you to perform atomistic simulations using pre-trained foundational machine learning interatomic potentials (MLIPs) such as those from the MACE and FairChem libraries.
     
@@ -491,7 +491,6 @@ else:
     3. Select a calculation task
     4. Run the calculation and analyze the results
     """)
-
 # Footer
 st.markdown("---")
 st.markdown("Universal MLIP Playground App | Created with Streamlit, ASE, MACE, FairChem and ❤️")
