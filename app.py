@@ -29,6 +29,7 @@ os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 # Check if running on Streamlit Cloud vs locally
 is_streamlit_cloud = os.environ.get('STREAMLIT_RUNTIME_ENV') == 'cloud'
 MAX_ATOMS_CLOUD = 50  # Maximum atoms allowed on Streamlit Cloud
+MAX_ATOMS_CLOUD_UMA = 15
 
 # Set page configuration
 st.set_page_config(
@@ -97,12 +98,15 @@ def streamlit_log(opt):
     table_placeholder.dataframe(df)
 
 # Function to check atom count limits
-def check_atom_limit(atoms_obj):
+def check_atom_limit(atoms_obj, selected_model):
     if atoms_obj is None:
         return True
     
     num_atoms = len(atoms_obj)
-    
+    if is_streamlit_cloud and ('UMA' in selected_model or 'ESEN MD' in selected_model) and num_atoms > MAX_ATOMS_CLOUD_UMA:
+        st.error(f"⚠️ Error: Your structure contains {num_atoms} atoms, which exceeds the {MAX_ATOMS_CLOUD_UMA} atom limit for Streamlit Cloud deployments for large sized FairChem models. For larger systems, please download the repository from GitHub and run it locally on your machine where no atom limit applies.")
+        st.info("💡 Running locally allows you to process much larger structures and use your own computational resources more efficiently.")
+        return False
     if is_streamlit_cloud and num_atoms > MAX_ATOMS_CLOUD:
         st.error(f"⚠️ Error: Your structure contains {num_atoms} atoms, which exceeds the {MAX_ATOMS_CLOUD} atom limit for Streamlit Cloud deployments. For larger systems, please download the repository from GitHub and run it locally on your machine where no atom limit applies.")
         st.info("💡 Running locally allows you to process much larger structures and use your own computational resources more efficiently.")
@@ -214,7 +218,7 @@ elif input_method == "Paste Content":
             atoms = read(tmp_filepath)
             st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
             # Check atom count limit
-            if check_atom_limit(atoms_temp):
+            if check_atom_limit(atoms_temp, selected_model):
                 atoms = atoms_temp
                 st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
             # Clean up the temporary file
