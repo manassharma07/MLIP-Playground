@@ -337,8 +337,7 @@ if atoms is not None:
                     # Set up calculator based on selected model
                     if model_type == "MACE":
                         st.write("Setting up MACE calculator...")
-                        calc = get_mace_model(model_path, device, dtype)
-                        calc = mace_mp(model=model_path, device=device, default_dtype=selected_default_dtype)
+                        calc = get_mace_model(model_path, device, selected_default_dtype)
                     else:  # FairChem
                         st.write("Setting up FairChem calculator...")
                         # Seems like the FairChem models use float32 and when switching from MACE 64 model to FairChem float32 model we get an error
