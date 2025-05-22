@@ -135,6 +135,20 @@ FAIRCHEM_MODELS = {
     "ESEN SM Direct All OMOL": "esen-sm-direct-all-omol"
 }
 
+@st.cache_resource
+def get_mace_model(model_path, device, selected_default_dtype):
+    # Create a model of the specified type.
+    return mace_mp(model=model_path, device=device, default_dtype=selected_default_dtype)
+
+@st.cache_resource
+def get_fairchem_model(selected_model, model_path, device, selected_task_type):
+    predictor = pretrained_mlip.get_predict_unit(model_path, device=device)
+    if selected_model == "UMA Small":
+        calc = FAIRChemCalculator(predictor, task_name=selected_task_type)
+    else:
+        calc = FAIRChemCalculator(predictor)
+    return calc
+
 # Sidebar for file input and parameters
 st.sidebar.markdown("## Input Options")
 
@@ -212,6 +226,7 @@ elif input_method == "Paste Content":
 st.sidebar.markdown("## Model Selection")
 model_type = st.sidebar.radio("Select Model Type:", ["MACE", "FairChem"])
 
+selected_task_type = None
 if model_type == "MACE":
     selected_model = st.sidebar.selectbox("Select MACE Model:", list(MACE_MODELS.keys()))
     model_path = MACE_MODELS[selected_model]
@@ -246,7 +261,7 @@ task = st.sidebar.selectbox("Select Calculation Task:",
 # Optimization parameters
 if "Optimization" in task:
     st.sidebar.markdown("### Optimization Parameters")
-    max_steps = st.sidebar.slider("Maximum Steps:", min_value=10, max_value=200, value=100, step=10)
+    max_steps = st.sidebar.slider("Maximum Steps:", min_value=10, max_value=25, value=15, step=1)
     fmax = st.sidebar.slider("Convergence Threshold (eV/Å):", 
                             min_value=0.001, max_value=0.1, value=0.05, step=0.001, format="%.3f")
     optimizer = st.sidebar.selectbox("Optimizer:", ["BFGS", "LBFGS", "FIRE"], index=1)
@@ -322,18 +337,15 @@ if atoms is not None:
                     # Set up calculator based on selected model
                     if model_type == "MACE":
                         st.write("Setting up MACE calculator...")
+                        calc = get_mace_model(model_path, device, dtype)
                         calc = mace_mp(model=model_path, device=device, default_dtype=selected_default_dtype)
                     else:  # FairChem
                         st.write("Setting up FairChem calculator...")
                         # Seems like the FairChem models use float32 and when switching from MACE 64 model to FairChem float32 model we get an error
                         # probably due to both sharing the underlying torch implementation
                         # So just a dummy statement to swithc torch to 32 bit
-                        calc = mace_mp(model="small", device=device, default_dtype="float32")
-                        predictor = pretrained_mlip.get_predict_unit(model_path, device=device)
-                        if selected_model == "UMA Small":
-                            calc = FAIRChemCalculator(predictor, task_name=selected_task_type)
-                        else:
-                            calc = FAIRChemCalculator(predictor)
+                        calc = get_mace_model('https://github.com/ACEsuit/mace-mp/releases/download/mace_mp_0/2023-12-10-mace-128-L0_energy_epoch-249.model', 'cpu', 'float32')
+                        calc = get_fairchem_model(selected_model, model_path, device, selected_task_type)
                     # Attach calculator to atoms
                     calc_atoms.calc = calc
                     
