@@ -242,9 +242,9 @@ if model_type == "FairChem":
         st.sidebar.warning("Meta FAIR Acceptable Use Policy. This model was developed by the Fundamental AI Research (FAIR) team at Meta. By using it, you agree to their acceptable use policy, which prohibits using their models to violate the law or others' rights, plan or develop activities that present a risk of death or harm, and deceive or mislead others.")
         selected_task_type = st.sidebar.selectbox("Select UMA Model Task Type:", ["omol", "omat", "omc", "odac", "oc20"])
 # Check atom count limit
-if check_atom_limit(atoms, selected_model):
-    atoms = atoms
-    st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
+if atoms is not None:
+    check_atom_limit(atoms, selected_model):
+    #st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
 # Device selection
 device = st.sidebar.radio("Computation Device:", ["CPU", "CUDA (GPU)"], 
                          index=0 if not torch.cuda.is_available() else 1)
