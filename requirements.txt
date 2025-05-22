@@ -11,7 +11,7 @@ numpy
 ase
 # Install mace_e3nn_new from the main branch on GitHub
 git+https://github.com/manassharma07/mace_e3nn_new.git@main#egg=mace_e3nn_new
-mace-torch
+# mace-torch
 py3dmol
 huggingface_hub
 hf_xet
