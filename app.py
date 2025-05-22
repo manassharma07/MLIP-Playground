@@ -99,20 +99,15 @@ def streamlit_log(opt):
 
 # Function to check atom count limits
 def check_atom_limit(atoms_obj, selected_model):
-    st.write('here1')
     if atoms_obj is None:
-        st.write('here2')
         return True
     
     num_atoms = len(atoms_obj)
-    st.write('here3', num_atoms)
     if ('UMA' in selected_model or 'ESEN MD' in selected_model) and num_atoms > MAX_ATOMS_CLOUD_UMA:
-        st.write('here4')
         st.error(f"⚠️ Error: Your structure contains {num_atoms} atoms, which exceeds the {MAX_ATOMS_CLOUD_UMA} atom limit for Streamlit Cloud deployments for large sized FairChem models. For larger systems, please download the repository from GitHub and run it locally on your machine where no atom limit applies.")
         st.info("💡 Running locally allows you to process much larger structures and use your own computational resources more efficiently.")
         return False
     if num_atoms > MAX_ATOMS_CLOUD:
-        st.write('here5')
         st.error(f"⚠️ Error: Your structure contains {num_atoms} atoms, which exceeds the {MAX_ATOMS_CLOUD} atom limit for Streamlit Cloud deployments. For larger systems, please download the repository from GitHub and run it locally on your machine where no atom limit applies.")
         st.info("💡 Running locally allows you to process much larger structures and use your own computational resources more efficiently.")
         return False
