@@ -243,7 +243,7 @@ if model_type == "FairChem":
         selected_task_type = st.sidebar.selectbox("Select UMA Model Task Type:", ["omol", "omat", "omc", "odac", "oc20"])
 # Check atom count limit
 if atoms is not None:
-    check_atom_limit(atoms, selected_model):
+    check_atom_limit(atoms, selected_model)
     #st.sidebar.success(f"Successfully parsed structure with {len(atoms)} atoms!")
 # Device selection
 device = st.sidebar.radio("Computation Device:", ["CPU", "CUDA (GPU)"], 
