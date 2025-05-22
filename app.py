@@ -473,6 +473,9 @@ else:
     # Display instructions if no structure is loaded
     st.info("Please select a structure using the sidebar options to begin.")
     
+
+# Footer
+st.markdown("---")
 with st.expander('## About This App'):
     # Show some information about the app
     st.write("""
@@ -491,7 +494,5 @@ with st.expander('## About This App'):
     3. Select a calculation task
     4. Run the calculation and analyze the results
     """)
-# Footer
-st.markdown("---")
 st.markdown("Universal MLIP Playground App | Created with Streamlit, ASE, MACE, FairChem and ❤️")
 st.markdown("Made by [Manas Sharma](https://manas.bragitoff.com/) in the groups of [Prof. Ananth Govind Rajan](https://www.agrgroup.org/) and [Prof. Sudeep Punnathanam](https://chemeng.iisc.ac.in/sudeep/)")
