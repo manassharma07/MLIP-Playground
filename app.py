@@ -16,20 +16,25 @@ import pandas as pd
 
 from huggingface_hub import login
 
+# try:
+#     hf_token = st.secrets["HF_TOKEN"]["token"]
+#     os.environ["HF_TOKEN"] = hf_token
+#     login(token=hf_token)
+# except Exception as e:
+#     print("streamlit hf secret not defined/assigned")
 try:
-    hf_token = st.secrets["HF_TOKEN"]["token"]
-    os.environ["HF_TOKEN"] = hf_token
-    login(token=hf_token)
+    hf_token = os.getenv("YOUR SECRET KEY")
+    login(token = hf_token)
 except Exception as e:
-    print("streamlit hf secret not defined/assigned")
+     print("hf secret not defined/assigned")
 
 import os
 os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
 # Check if running on Streamlit Cloud vs locally
 is_streamlit_cloud = os.environ.get('STREAMLIT_RUNTIME_ENV') == 'cloud'
-MAX_ATOMS_CLOUD = 50  # Maximum atoms allowed on Streamlit Cloud
-MAX_ATOMS_CLOUD_UMA = 15
+MAX_ATOMS_CLOUD = 5000  # Maximum atoms allowed on Streamlit Cloud
+MAX_ATOMS_CLOUD_UMA = 5000
 
 # Set page configuration
 st.set_page_config(
@@ -65,7 +70,7 @@ st.set_page_config(
 
 # Title and description
 st.markdown('## MLIP Playground', unsafe_allow_html=True)
-st.write('#### Run atomistic simulations with state-of-the-art universal machine learning interatomic potentials (MLIPs) for molecules and materials')
+st.write('#### Run, test and compare >17 state-of-the-art universal machine learning interatomic potentials (MLIPs) for atomistic simulations of molecules and materials')
 st.markdown('Upload molecular structure files or select from predefined examples, then compute energies and forces using foundation models such as those from MACE or FairChem (Meta).', unsafe_allow_html=True)
 
 # Create a directory for sample structures if it doesn't exist
@@ -82,6 +87,86 @@ SAMPLE_STRUCTURES = {
     "Ibuprofen": "ibuprofen.xyz"
 }
 
+def get_structure_viz2(atoms_obj, style='stick', show_unit_cell=True, width=400, height=400):
+    """
+    Generate visualization of atomic structure with optional unit cell display
+    
+    Parameters:
+    -----------
+    atoms_obj : ase.Atoms
+        ASE Atoms object containing the structure
+    style : str
+        Visualization style: 'ball_stick', 'stick', or 'ball'
+    show_unit_cell : bool
+        Whether to display unit cell for periodic systems
+    width, height : int
+        Dimensions of the visualization window
+    
+    Returns:
+    --------
+    py3Dmol.view object
+    """
+    
+    # Convert atoms to XYZ format
+    xyz_str = ""
+    xyz_str += f"{len(atoms_obj)}\n"
+    xyz_str += "Structure\n"
+    for atom in atoms_obj:
+        xyz_str += f"{atom.symbol} {atom.position[0]:.6f} {atom.position[1]:.6f} {atom.position[2]:.6f}\n"
+    
+    # Create a py3Dmol visualization
+    view = py3Dmol.view(width=width, height=height)
+    view.addModel(xyz_str, "xyz")
+    
+    # Set molecular style based on input
+    if style.lower() == 'ball_stick':
+        view.setStyle({'stick': {'radius': 0.1}, 'sphere': {'scale': 0.3}})
+    elif style.lower() == 'stick':
+        view.setStyle({'stick': {}})
+    elif style.lower() == 'ball':
+        view.setStyle({'sphere': {'scale': 0.4}})
+    else:
+        # Default to stick if unknown style
+        view.setStyle({'stick': {'radius': 0.15}})
+    
+    # Add unit cell visualization for periodic systems
+    if show_unit_cell and any(atoms_obj.pbc):
+        cell = atoms_obj.get_cell()
+        
+        # Define unit cell edges
+        origin = np.array([0.0, 0.0, 0.0])
+        edges = [
+            # Bottom face
+            (origin, cell[0]),  # a
+            (origin, cell[1]),  # b
+            (cell[0], cell[0] + cell[1]),  # a+b from a
+            (cell[1], cell[0] + cell[1]),  # a+b from b
+            # Top face
+            (cell[2], cell[2] + cell[0]),  # a from c
+            (cell[2], cell[2] + cell[1]),  # b from c
+            (cell[2] + cell[0], cell[2] + cell[0] + cell[1]),  # a+b from c+a
+            (cell[2] + cell[1], cell[2] + cell[0] + cell[1]),  # a+b from c+b
+            # Vertical edges
+            (origin, cell[2]),  # c
+            (cell[0], cell[0] + cell[2]),  # c from a
+            (cell[1], cell[1] + cell[2]),  # c from b
+            (cell[0] + cell[1], cell[0] + cell[1] + cell[2])  # c from a+b
+        ]
+        
+        # Add unit cell lines
+        for start, end in edges:
+            view.addCylinder({
+                'start': {'x': start[0], 'y': start[1], 'z': start[2]},
+                'end': {'x': end[0], 'y': end[1], 'z': end[2]},
+                'radius': 0.05,
+                'color': 'black',
+                'alpha': 0.7
+            })
+    
+    view.zoomTo()
+    view.setBackgroundColor('white')
+    
+    return view
 
 
 # Custom logger that updates the table
@@ -165,7 +250,7 @@ atoms = None
 # File upload option
 if input_method == "Upload File":
     uploaded_file = st.sidebar.file_uploader("Upload structure file", 
-                                           type=["xyz", "cif", "POSCAR", "mol", "tmol"])
+                                           type=["xyz", "cif", "POSCAR", "mol", "tmol", "vasp", "sdf", "CONTCAR"])
     
     if uploaded_file is not None:
         # Create a temporary file to save the uploaded content
@@ -206,7 +291,7 @@ elif input_method == "Paste Content":
         try:
             # Create a temporary file with the pasted content
             suffix_map = {"XYZ": ".xyz", "CIF": ".cif", "extXYZ": ".extxyz", 
-                         "POSCAR (VASP)": ".POSCAR", "Turbomole": ".tmol", "MOL": ".mol"}
+                         "POSCAR (VASP)": ".vasp", "Turbomole": ".tmol", "MOL": ".mol"}
             
             suffix = suffix_map.get(file_format, ".xyz")
             
@@ -266,7 +351,7 @@ task = st.sidebar.selectbox("Select Calculation Task:",
 # Optimization parameters
 if "Optimization" in task:
     st.sidebar.markdown("### Optimization Parameters")
-    max_steps = st.sidebar.slider("Maximum Steps:", min_value=10, max_value=25, value=15, step=1)
+    max_steps = st.sidebar.slider("Maximum Steps:", min_value=10, max_value=50, value=25, step=1)
     fmax = st.sidebar.slider("Convergence Threshold (eV/Å):", 
                             min_value=0.001, max_value=0.1, value=0.05, step=0.001, format="%.3f")
     optimizer = st.sidebar.selectbox("Optimizer:", ["BFGS", "LBFGS", "FIRE"], index=1)
@@ -297,7 +382,8 @@ if atoms is not None:
             return view
 
         # Display the 3D structure
-        view = get_structure_viz(atoms)
+        view = get_structure_viz2(atoms, style='stick', show_unit_cell=True, width=400, height=400)
+        # view = get_structure_viz(atoms)
         html_str = view._make_html()
         st.components.v1.html(html_str, width=400, height=400)
         
@@ -479,7 +565,8 @@ st.markdown("---")
 with st.expander('## About This App'):
     # Show some information about the app
     st.write("""
-    This app allows you to perform atomistic simulations using pre-trained foundational machine learning interatomic potentials (MLIPs) such as those from the MACE and FairChem libraries.
+    Test, compare and benchmark universal machine learning interatomic potentials (MLIPs).
+    This app allows you to perform atomistic simulations using pre-trained foundational MLIPs such as those from the MACE and FairChem libraries.
     
     ### Features:
     - Upload structure files (XYZ, CIF, POSCAR, etc.) or select from examples
