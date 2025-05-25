@@ -13,6 +13,8 @@ import py3Dmol
 from mace.calculators import mace_mp
 from fairchem.core import pretrained_mlip, FAIRChemCalculator
 import pandas as pd
+from orb_models.forcefield import pretrained
+from orb_models.forcefield.calculator import ORBCalculator
 
 from huggingface_hub import login
 
@@ -224,6 +226,11 @@ FAIRCHEM_MODELS = {
     "ESEN SM Direct All OMOL": "esen-sm-direct-all-omol"
 }
 
+# Define the available ORB models
+ORB_MODELS = {
+    "V3 OMAT Conserving": "orb_v3_conservative_inf_omat",
+}
+
 @st.cache_resource
 def get_mace_model(model_path, device, selected_default_dtype):
     # Create a model of the specified type.
@@ -311,7 +318,7 @@ elif input_method == "Paste Content":
 
 # Model selection
 st.sidebar.markdown("## Model Selection")
-model_type = st.sidebar.radio("Select Model Type:", ["MACE", "FairChem"])
+model_type = st.sidebar.radio("Select Model Type:", ["MACE", "FairChem", "ORB"])
 
 selected_task_type = None
 if model_type == "MACE":
@@ -326,6 +333,12 @@ if model_type == "FairChem":
     if selected_model == "UMA Small":
         st.sidebar.warning("Meta FAIR Acceptable Use Policy. This model was developed by the Fundamental AI Research (FAIR) team at Meta. By using it, you agree to their acceptable use policy, which prohibits using their models to violate the law or others' rights, plan or develop activities that present a risk of death or harm, and deceive or mislead others.")
         selected_task_type = st.sidebar.selectbox("Select UMA Model Task Type:", ["omol", "omat", "omc", "odac", "oc20"])
+if model_type == "ORB":
+    selected_model = st.sidebar.selectbox("Select ORB Model:", list(ORB_MODELS.keys()))
+    model_path = ORB_MODELS[selected_model]
+    # if "omat" in selected_model:
+    #     st.sidebar.warning("Using model under Academic Software License (ASL) license, see [https://github.com/gabor1/ASL](https://github.com/gabor1/ASL). To use this model you accept the terms of the license.")
+    selected_default_dtype = st.sidebar.selectbox("Select Precision (default_dtype):", ['float32-high', 'float32-highest', 'float64'])
 # Check atom count limit
 if atoms is not None:
     check_atom_limit(atoms, selected_model)
@@ -429,13 +442,17 @@ if atoms is not None:
                     if model_type == "MACE":
                         st.write("Setting up MACE calculator...")
                         calc = get_mace_model(model_path, device, selected_default_dtype)
-                    else:  # FairChem
+                    elif model_type == "FairChem":  # FairChem
                         st.write("Setting up FairChem calculator...")
                         # Seems like the FairChem models use float32 and when switching from MACE 64 model to FairChem float32 model we get an error
                         # probably due to both sharing the underlying torch implementation
                         # So just a dummy statement to swithc torch to 32 bit
                         calc = get_mace_model('https://github.com/ACEsuit/mace-mp/releases/download/mace_mp_0/2023-12-10-mace-128-L0_energy_epoch-249.model', 'cpu', 'float32')
                         calc = get_fairchem_model(selected_model, model_path, device, selected_task_type)
+                    elif model_type == "ORB":
+                        st.write("Setting up ORB calculator...")
+                        orbff = pretrained.orb_v3_conservative_inf_omat(device=device, precision=selected_default_dtype)
+                        calc = ORBCalculator(orbff, device=device)
                     # Attach calculator to atoms
                     calc_atoms.calc = calc
                     
