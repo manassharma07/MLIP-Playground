@@ -33,8 +33,8 @@ os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
 
 # Check if running on Streamlit Cloud vs locally
 is_streamlit_cloud = os.environ.get('STREAMLIT_RUNTIME_ENV') == 'cloud'
-MAX_ATOMS_CLOUD = 5000  # Maximum atoms allowed on Streamlit Cloud
-MAX_ATOMS_CLOUD_UMA = 5000
+MAX_ATOMS_CLOUD = 500  # Maximum atoms allowed on Streamlit Cloud
+MAX_ATOMS_CLOUD_UMA = 500
 
 # Set page configuration
 st.set_page_config(
