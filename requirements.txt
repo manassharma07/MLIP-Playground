@@ -15,3 +15,4 @@ git+https://github.com/manassharma07/mace_e3nn_new.git@main#egg=mace_e3nn_new
 py3dmol
 huggingface_hub
 hf_xet
+orb-models
