@@ -18,17 +18,17 @@ from orb_models.forcefield.calculator import ORBCalculator
 
 from huggingface_hub import login
 
-# try:
-#     hf_token = st.secrets["HF_TOKEN"]["token"]
-#     os.environ["HF_TOKEN"] = hf_token
-#     login(token=hf_token)
-# except Exception as e:
-#     print("streamlit hf secret not defined/assigned")
 try:
-    hf_token = os.getenv("YOUR SECRET KEY")
-    login(token = hf_token)
+    hf_token = st.secrets["HF_TOKEN"]["token"]
+    os.environ["HF_TOKEN"] = hf_token
+    login(token=hf_token)
 except Exception as e:
-     print("hf secret not defined/assigned")
+    print("streamlit hf secret not defined/assigned")
+# try:
+#     hf_token = os.getenv("YOUR SECRET KEY")
+#     login(token = hf_token)
+# except Exception as e:
+#      print("hf secret not defined/assigned")
 
 import os
 os.environ["STREAMLIT_WATCHER_TYPE"] = "none"
